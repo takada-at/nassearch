@@ -48,10 +48,17 @@ class Search:
         self.path = Path(self.root_dir)
         self.prefix = prefix
 
+    @classmethod
+    def safe_read(cls, path: Path) -> bool:
+        try:
+            return list(path.iterdir())
+        except PermissionError as e:
+            return []
+
     def search(self) -> List[SearchResult]:
         stack = []
         if self.prefix:
-            for d in self.path.iterdir():
+            for d in self.safe_read(self.path):
                 if d.name.startswith(self.prefix):
                     stack.append(d)
         else:
@@ -59,7 +66,7 @@ class Search:
         result = []
         while stack:
             target = stack.pop()
-            for d in target.iterdir():
+            for d in self.safe_read(target):
                 if d.is_dir():
                     stack.append(d)
                 else:
